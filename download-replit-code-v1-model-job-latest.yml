@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: download-replit-code-v1-model-latest
+spec:
+  template:
+    spec:
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: model-storage-replit-code-v1-latest
+      containers:
+        - name: download-model
+          image: python:3.9-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              apk add --no-cache git &&
+              apk add --no-cache git-lfs &&
+              rm -rf /model-storage/replit-code-v1 &&
+              git clone https://huggingface.co/replit/replit-code-v1-3b /model-storage/replit-code-v1 &&
+              cd /model-storage/replit-code-v1 &&
+              echo "Now pulling the big files with LFS" &&
+              git lfs pull              
+          volumeMounts:
+            - name: model-storage
+              mountPath: /model-storage
+          resources:
+            requests:
+              cpu: 2
+              memory: 32Gi 
+            limits:
+              cpu: 2
+              memory: 32Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values: 
+                - LAS1
+      restartPolicy: Never
+  backoffLimit: 2
+
+
+

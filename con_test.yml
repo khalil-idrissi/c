@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cuda-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cuda-app
+  template:
+    metadata:
+      labels:
+        app: cuda-app
+    spec:
+      containers:
+      - name: cuda-container
+        image: khalilidrissi/replit-code-ds-test-v1055:1
+        resources:
+          limits:
+            nvidia.com/gpu: 4 # requesting 1 GPU
+        command: ["/bin/bash", "-c"]
+      restartPolicy: Always
+
